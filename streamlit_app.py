@@ -47,7 +47,7 @@ categories = [
     "Beverages",
     "Bakery",
     "Grains & Pasta",
-    "Sauces and condiments"
+    "Sauces and condiments",
     "Milk products",
     "Spices & Herbs",
     "Meat",
