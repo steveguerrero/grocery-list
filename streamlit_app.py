@@ -31,8 +31,9 @@ def sort_articles(articles, categories):
     df = df.sort_values(by='CategoryOrder').drop(columns=['CategoryOrder'])
     return df.to_dict(orient='records')
  
-# Load articles on first run
-st.session_state.articles = load_articles()
+# Load articles on first run or if session state is missing
+if 'articles' not in st.session_state:
+    st.session_state.articles = load_articles()
    
 if 'edit_idx' not in st.session_state:
     st.session_state.edit_idx = None
