@@ -121,7 +121,7 @@ if st.session_state.articles:
        
         for idx, article in category_articles.iterrows():
             if st.session_state.edit_idx == idx:
-                col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
+                col1, col2, col3, col4 = st.columns([3, 3, 3, 1])
                 with col1:
                     new_name = st.text_input(f'Name for {article["name"]}', value=article['name'], key=f'name_{article["name"]}_{idx}')
                 with col2:
@@ -144,7 +144,7 @@ if st.session_state.articles:
                         st.session_state.edit_idx = None
                         st.rerun()
             else:
-                col1, col2, col3, col4 = st.columns([3, 3, 3, 3])
+                col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
                 with col1:
                     text = f"- "
                     article_name = article['name']
