@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import os
 
 # Strike text
 def strike_text(text):
@@ -11,14 +10,17 @@ CSV_FILE = 'articles.csv'
  
 # Function to load articles from a CSV file
 def load_articles():
-    if os.path.exists(CSV_FILE):
-        return pd.read_csv(CSV_FILE).to_dict(orient='records')
-    return []
+    return pd.read_csv(CSV_FILE).to_dict(orient='records')
  
 # Function to save articles to a CSV file
 def save_articles(articles):
     pd.DataFrame(articles).to_csv(CSV_FILE, index=False)
- 
+
+def clear_articles():
+    st.session_state.articles = []
+    pd.DataFrame([{"name": '', "category": '', "price": '', "is_bougth": '',}]).to_csv(CSV_FILE, index=False)
+    st.rerun()
+
 # Function to sort the articles according to the category order
 def sort_articles(articles, categories):
     df = pd.DataFrame(articles)
@@ -27,9 +29,8 @@ def sort_articles(articles, categories):
     df = df.sort_values(by='CategoryOrder').drop(columns=['CategoryOrder'])
     return df.to_dict(orient='records')
  
-# Load articles on first run or if session state is missing
-if 'articles' not in st.session_state:
-    st.session_state.articles = load_articles()
+# Load articles on first run
+st.session_state.articles = load_articles()
    
 if 'edit_idx' not in st.session_state:
     st.session_state.edit_idx = None
@@ -38,20 +39,23 @@ if 'edit_idx' not in st.session_state:
 categories = [
     "Recipes",
     "Produce",
+    "Hot Drinks",
     "Nuts",
     "Snacks",
     "Beverages",
-    "Milk products",
-    "Meat",
-    "Fish",
-    "Other",
     "Bakery",
     "Grains & Pasta",
-    "Condiments & Sauces",
-    "Frozen Foods",
-    "Canned Goods",
+    "Sauces and condiments"
+    "Milk products",
     "Spices & Herbs",
-    "Deli"
+    "Meat",
+    "Ready-made sauces",
+    "Canned Goods",
+    "Frozen Foods",
+    "Fish",
+    "Personal Care",
+    "Household & Cleaning Supplies",
+    "Other",
 ]
  
 # Title of the app
@@ -93,12 +97,11 @@ def update_article(article_idx, new_name, new_category, new_price):
     st.session_state.edit_idx = None
     st.rerun()
  
-def mark_as_is_bougth(article_idx):
+def set_is_bougth(article_idx):
     article = st.session_state.articles[article_idx]
     article['is_bougth'] = not article['is_bougth']
     st.session_state.articles[article_idx] = article
     save_articles(st.session_state.articles)
-    st.rerun()
 
 # Display the list of articles with remove and update buttons
 if st.session_state.articles:
@@ -150,8 +153,9 @@ if st.session_state.articles:
                     text += price_text
                     st.write(text)
                 with col2:
-                    if st.button('✔️', key=f'mark_as_is_bougth_{article["name"]}_{idx}'):
-                        mark_as_is_bougth(idx)
+                    if st.button('✔️', key=f'set_is_bougth_{article["name"]}_{idx}'):
+                        set_is_bougth(idx)
+                        st.rerun()
                 with col3:
                     if st.button('✏️', key=f'edit_{article["name"]}_{idx}'):
                         st.session_state.edit_idx = idx
@@ -166,10 +170,8 @@ if st.session_state.articles:
     total_price = df_articles['price'].sum()
     st.write(f"**Total: {total_price:.2f} EUR**")
 else:
-    st.write("No articles added yet.")
+    st.write(f":green[All articles have been cleared!]")
  
 # Option to clear the list of articles
 if st.button('Clear All Articles'):
-    st.session_state.articles = []
-    save_articles(st.session_state.articles)
-    st.success("All articles have been cleared!")
+    clear_articles()
