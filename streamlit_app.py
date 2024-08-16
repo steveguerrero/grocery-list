@@ -18,7 +18,9 @@ def save_articles(articles):
 
 def clear_articles():
     st.session_state.articles = []
-    pd.DataFrame([{"name": '', "category": '', "price": '', "is_bougth": '',}]).to_csv(CSV_FILE, index=False)
+    file = open(CSV_FILE, "w")
+    file.write("name,category,price,is_bougth")
+    file.close()
     st.rerun()
 
 # Function to sort the articles according to the category order
