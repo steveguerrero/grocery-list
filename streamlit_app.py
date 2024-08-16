@@ -16,6 +16,7 @@ def load_articles():
 def save_articles(articles):
     pd.DataFrame(articles).to_csv(CSV_FILE, index=False)
 
+# Function to clear articles and reset the CSV file
 def clear_articles():
     st.session_state.articles = []
     file = open(CSV_FILE, "w")
