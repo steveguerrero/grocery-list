@@ -9,14 +9,14 @@ CSV_FILE = 'articles.csv'
 # Function to load articles from a CSV file
 def load_articles():
     if os.path.exists(CSV_FILE):
-        return pd.read_csv(CSV_FILE).to_dict(orient='records')
+        if len(pd.read_csv(CSV_FILE)) > 0:
+            return pd.read_csv(CSV_FILE).to_dict(orient='records')
     return []
 # Function to save articles to a CSV file
 def save_articles(articles):
     pd.DataFrame(articles).to_csv(CSV_FILE, index=False)
 # Function to clear articles and reset the CSV file
 def clear_articles():
-    st.session_state.articles = []
     file = open(CSV_FILE, "w")
     file.write("name,category,price\n")
     file.close()
@@ -67,24 +67,7 @@ if submit_button:
             st.success(f"Added article {name} with price {price:.2f} in category {category}")
     except ValueError:
         st.error("Please input a valid price using a comma as the decimal separator.")
-# # Function to update an article's details
-# def update_article(article_idx, new_name, new_category, new_price):
-#     article = st.session_state.articles[article_idx]
-#     article['name'] = new_name.strip()
-#     article['category'] = new_category
-#     article['price'] = new_price
-#     st.session_state.articles[article_idx] = article
-#     st.session_state.articles = sort_articles(st.session_state.articles, categories)
-#     save_articles(st.session_state.articles)
-#     st.session_state.edit_idx = None
-#     st.rerun()
-# # Function to mark an article as bought
-# def set_is_bought(article_idx):
-#     article = st.session_state.articles[article_idx]
-#     article['is_bought'] = not article['is_bought']
-#     st.session_state.articles[article_idx] = article
-#     save_articles(st.session_state.articles)
-#     st.rerun()
+
 # Display the list of articles with dataframes for each category
 if st.session_state.articles:
     st.subheader('Articles:')
@@ -95,13 +78,15 @@ if st.session_state.articles:
                    hide_index=True
                    )
     
-    # Remove rows with 'Remove' checked
-    to_keep = ~edited_df['❌']
-    updated_df = edited_df[to_keep].drop(columns=['❌'])
+    # Remove row with 'Remove' checked
+    rows_to_keep = ~edited_df['❌']
+    updated_df = edited_df[rows_to_keep].drop(columns=['❌'])
     # Automatically save changes if edited
     if not updated_df.equals(pd.DataFrame(st.session_state.articles)):
         st.session_state.articles = updated_df.to_dict(orient='records')
         save_articles(st.session_state.articles)
+        if len(st.session_state.articles) == 0:
+            clear_articles()
         st.rerun()
     
     # Calculate and display the total sum
@@ -112,4 +97,5 @@ else:
     st.write(f":green[All articles have been cleared!]")
 # Option to clear the list of articles
 if st.button('Clear All Articles'):
+    st.session_state.articles = []
     clear_articles()
