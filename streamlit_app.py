@@ -15,7 +15,7 @@ def load_articles():
         return []
     if len(pd.read_csv(CSV_FILE)) == 0:
         return []
-    return pd.read_csv(CSV_FILE).to_dict(orient='records')
+    return pd.read_csv(CSV_FILE, sep=';').to_dict(orient='records')
 
 # Function to save articles to a CSV file
 def save_articles(articles):
