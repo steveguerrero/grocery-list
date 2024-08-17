@@ -18,7 +18,7 @@ def save_articles(articles):
 def clear_articles():
     st.session_state.articles = []
     file = open(CSV_FILE, "w")
-    file.write("name,category,price,is_bought\n")
+    file.write("name,category,price\n")
     file.close()
     st.rerun()
 # Function to sort the articles according to the category order
@@ -52,40 +52,39 @@ with st.form(key='article_form', clear_on_submit=True):
 # Add new article to the list
 if submit_button:
     try:
-        price = float(price_input.strip().replace(',', '.')) if price_input else None
+        price = float(price_input.strip().replace(',', '.')) if price_input else 0.0
         if not name.strip():
             st.error("Please input a valid name, category, and price!")
         else:
             article_to_add = {
                 'name': name.strip(), 
                 'category': category, 
-                'price': price, 
-                '✔️': False
+                'price': price,
             }
             st.session_state.articles.append(article_to_add)
             st.session_state.articles = sort_articles(st.session_state.articles, categories)
             save_articles(st.session_state.articles)
-            st.success(f"Added {name}")
+            st.success(f"Added article {name} with price {price:.2f} in category {category}")
     except ValueError:
         st.error("Please input a valid price using a comma as the decimal separator.")
-# Function to update an article's details
-def update_article(article_idx, new_name, new_category, new_price):
-    article = st.session_state.articles[article_idx]
-    article['name'] = new_name.strip()
-    article['category'] = new_category
-    article['price'] = new_price
-    st.session_state.articles[article_idx] = article
-    st.session_state.articles = sort_articles(st.session_state.articles, categories)
-    save_articles(st.session_state.articles)
-    st.session_state.edit_idx = None
-    st.rerun()
-# Function to mark an article as bought
-def set_is_bought(article_idx):
-    article = st.session_state.articles[article_idx]
-    article['is_bought'] = not article['is_bought']
-    st.session_state.articles[article_idx] = article
-    save_articles(st.session_state.articles)
-    st.rerun()
+# # Function to update an article's details
+# def update_article(article_idx, new_name, new_category, new_price):
+#     article = st.session_state.articles[article_idx]
+#     article['name'] = new_name.strip()
+#     article['category'] = new_category
+#     article['price'] = new_price
+#     st.session_state.articles[article_idx] = article
+#     st.session_state.articles = sort_articles(st.session_state.articles, categories)
+#     save_articles(st.session_state.articles)
+#     st.session_state.edit_idx = None
+#     st.rerun()
+# # Function to mark an article as bought
+# def set_is_bought(article_idx):
+#     article = st.session_state.articles[article_idx]
+#     article['is_bought'] = not article['is_bought']
+#     st.session_state.articles[article_idx] = article
+#     save_articles(st.session_state.articles)
+#     st.rerun()
 # Display the list of articles with dataframes for each category
 if st.session_state.articles:
     st.subheader('Articles:')
@@ -93,16 +92,15 @@ if st.session_state.articles:
     df_articles['❌'] = False  # Add a column for removing articles 
     
     edited_df = st.data_editor(df_articles, 
-                   hide_index=True, 
-                #    num_rows='dynamic', 
-                   column_order=("name", "✔️", "price", '❌'))
+                   hide_index=True
+                   )
     
     # Remove rows with 'Remove' checked
     to_keep = ~edited_df['❌']
     updated_df = edited_df[to_keep].drop(columns=['❌'])
     # Automatically save changes if edited
     if not updated_df.equals(pd.DataFrame(st.session_state.articles)):
-        st.session_state.articles = sort_articles(updated_df.to_dict(orient='records'), categories)
+        st.session_state.articles = updated_df.to_dict(orient='records')
         save_articles(st.session_state.articles)
         st.rerun()
     
