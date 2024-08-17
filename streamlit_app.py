@@ -15,11 +15,11 @@ def load_articles():
         return []
     if len(pd.read_csv(CSV_FILE)) == 0:
         return []
-    return pd.read_csv(CSV_FILE, sep=';').to_dict(orient='records')
+    return pd.read_csv(CSV_FILE).to_dict(orient='records')
 
 # Function to save articles to a CSV file
 def save_articles(articles):
-    pd.DataFrame(articles).to_csv(CSV_FILE, sep=';', index=False)
+    pd.DataFrame(articles).to_csv(CSV_FILE, index=False)
 
 # Function to clear articles and reset the CSV file
 def clear_articles():
@@ -67,12 +67,13 @@ st.title("Article Price Calculator")
 with st.form(key='article_form', clear_on_submit=True):
     name = st.text_input('Article Name')
     category = st.selectbox('Category', categories)
-    price_input = st.text_input('Price (use comma as decimal separator)')
+    price_input = st.text_input('Price (use dot as decimal separator)')
     submit_button = st.form_submit_button(label='Add Article')
 # Add new article to the list
 if submit_button:
     try:
-        price = price_input.strip()
+
+        price = float(price_input.strip()) if price_input else 0.0
         if not name.strip():
             st.error("Please input a valid name, category, and price!")
         else:
@@ -91,9 +92,9 @@ if submit_button:
 # Display the list of articles with dataframes for each category
 if st.session_state.articles:
     st.subheader('Articles:')
-    df_articles = pd.DataFrame(st.session_state.articles)   
+    df_articles = pd.DataFrame(st.session_state.articles)
     df_articles['❌'] = False  # Add a column for removing articles 
-    
+
     edited_df = st.data_editor(df_articles, 
                    hide_index=True
                    )
@@ -110,9 +111,7 @@ if st.session_state.articles:
         st.rerun()
     
     # Calculate and display the total sum
-    total_price = 0
-    for price in df_articles['price']:
-        total_price += float(price.replace(',', '.')) if price else 0
+    total_price = sum([price for price in df_articles['price']])
     
     st.write(f"**Total: {total_price:.2f} EUR**")
 else:
