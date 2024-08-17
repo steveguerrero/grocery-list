@@ -1,26 +1,33 @@
 import streamlit as st
 import pandas as pd
 import os
-# Strike text
-def strike_text(text):
-    return f"~~{text}~~"
+
 # CSV file path
 CSV_FILE = 'articles.csv'
 # Function to load articles from a CSV file
 def load_articles():
-    if os.path.exists(CSV_FILE):
-        if len(pd.read_csv(CSV_FILE)) > 0:
-            return pd.read_csv(CSV_FILE).to_dict(orient='records')
-    return []
+    if not os.path.exists(CSV_FILE):
+        return []
+    file = open(CSV_FILE, "r")
+    content = file.read()
+    file.close()
+    if not content:
+        return []
+    if len(pd.read_csv(CSV_FILE)) == 0:
+        return []
+    return pd.read_csv(CSV_FILE).to_dict(orient='records')
+
 # Function to save articles to a CSV file
 def save_articles(articles):
-    pd.DataFrame(articles).to_csv(CSV_FILE, index=False)
+    pd.DataFrame(articles).to_csv(CSV_FILE, sep=';', index=False)
+
 # Function to clear articles and reset the CSV file
 def clear_articles():
     file = open(CSV_FILE, "w")
-    file.write("name,category,price\n")
+    file.write("name;category;price")
     file.close()
     st.rerun()
+
 # Function to sort the articles according to the category order
 def sort_articles(articles, categories):
     df = pd.DataFrame(articles)
@@ -28,17 +35,30 @@ def sort_articles(articles, categories):
     df['CategoryOrder'] = df['category'].map(category_order)
     df = df.sort_values(by='CategoryOrder').drop(columns=['CategoryOrder'])
     return df.to_dict(orient='records')
+
 # Load articles on first run or if session state is missing
 if 'articles' not in st.session_state:
     st.session_state.articles = load_articles()
-if 'edit_idx' not in st.session_state:
-    st.session_state.edit_idx = None
+
 # Define categories and category order
 categories = [
-    "Produce", "Hot Drinks", "Nuts", "Snacks", "Beverages",
-    "Bakery", "Grains & Pasta", "Sauces and condiments", "Milk products",
-    "Spices & Herbs", "Meat", "Ready-made sauces", "Canned Goods",
-    "Frozen Foods", "Fish", "Personal Care", "Household & Cleaning Supplies",
+    "Produce", 
+    "Hot Drinks", 
+    "Nuts", 
+    "Snacks", 
+    "Beverages",
+    "Bakery", 
+    "Grains & Pasta", 
+    "Sauces and condiments", 
+    "Milk products",
+    "Spices & Herbs", 
+    "Meat", 
+    "Ready-made sauces", 
+    "Canned Goods",
+    "Frozen Foods", 
+    "Fish", 
+    "Personal Care", 
+    "Household & Cleaning Supplies",
     "Other"
 ]
 # Title of the app
@@ -52,7 +72,7 @@ with st.form(key='article_form', clear_on_submit=True):
 # Add new article to the list
 if submit_button:
     try:
-        price = float(price_input.strip().replace(',', '.')) if price_input else 0.0
+        price = price_input.strip()
         if not name.strip():
             st.error("Please input a valid name, category, and price!")
         else:
@@ -64,7 +84,7 @@ if submit_button:
             st.session_state.articles.append(article_to_add)
             st.session_state.articles = sort_articles(st.session_state.articles, categories)
             save_articles(st.session_state.articles)
-            st.success(f"Added article {name} with price {price:.2f} in category {category}")
+            st.success(f"Added {name}")
     except ValueError:
         st.error("Please input a valid price using a comma as the decimal separator.")
 
@@ -90,8 +110,10 @@ if st.session_state.articles:
         st.rerun()
     
     # Calculate and display the total sum
-    total_price = df_articles['price'].sum()
-
+    total_price = 0
+    for price in df_articles['price']:
+        total_price += float(price.replace(',', '.')) if price else 0
+    
     st.write(f"**Total: {total_price:.2f} EUR**")
 else:
     st.write(f":green[All articles have been cleared!]")
